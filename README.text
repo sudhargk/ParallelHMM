@@ -46,7 +46,8 @@ Cloning makes a local copy of the repository for you.
 ## TASK 2. Make a change 
 
 Make a change in the `sample.html` source file and push the change back to Bitbucket.
-EDIT: sample.html has been removed from the repo. If you want to test whether you are able to commit, push, pull etc. edit this file instead.
+
+**EDIT**: sample.html has been removed from the repo. If you want to test whether you are able to commit, push, pull etc. edit this file instead.
 
 ### If you are using Sourcetree:
 
