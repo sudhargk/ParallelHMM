@@ -1,6 +1,4 @@
-# Run some sand through your hands
-
-Now is you chance to play around with this sample tutorial repository.  Since this is a sample repository, you can't do anything wrong.  Try both tasks below.  How you perform each task depends on whether you are using Sourcetree or another Git client.
+# README
 
 - - -
 
@@ -48,6 +46,7 @@ Cloning makes a local copy of the repository for you.
 ## TASK 2. Make a change 
 
 Make a change in the `sample.html` source file and push the change back to Bitbucket.
+EDIT: sample.html has been removed from the repo. If you want to test whether you are able to commit, push, pull etc. edit this file instead.
 
 ### If you are using Sourcetree:
 
