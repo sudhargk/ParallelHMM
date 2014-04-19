@@ -1,0 +1,4 @@
+#Ignore these dirs when pushing code on the repo
+obj/*
+bin/*
+

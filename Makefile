@@ -13,3 +13,6 @@ $(OBJ)/%.o : $(SRC)/%.cc $(SRC)/matrix.hh
 	if [ ! -e $(OBJ) ]; then mkdir obj; fi;
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
+clean:
+	rm -rf obj/*
+	rm -rf bin/*
