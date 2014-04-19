@@ -1,10 +1,15 @@
-#makefile
 CXX=g++
-OUTPUT=bin/
-SRC=src/
-TARGETS=matrixtest.o
-all : $(TARGETS)
-matrixtest.o : matrix.o
-	$(CXX) $(SRC)matrixtest.c -o $(OUTPUT)$@
-matrix.o : $(SRC)matrix.hh
-	$(CXX) $(SRC)matrix.hh -o $(OUTPUT)$@
+CXXFLAGS=-Wall -Werror -std=c++0x
+LDFLAGS=-lm
+BIN=bin
+SRC=src
+OBJ=obj
+
+$(BIN)/matrixtest: $(OBJ)/matrix.o $(OBJ)/matrixtest.o
+	if [ ! -e $(BIN) ]; then mkdir bin; fi;
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+$(OBJ)/%.o : $(SRC)/%.cc $(SRC)/matrix.hh
+	if [ ! -e $(OBJ) ]; then mkdir obj; fi;
+	$(CXX) $(CXXFLAGS) -o $@ -c $<
+
