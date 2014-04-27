@@ -1,41 +1,6 @@
 #include "matrix.hh"
 #include <iostream>
-
-void Matrix::mult(const Matrix& second, Matrix& res){
-	const size_t depth = second.rsize;
-	Matrix& first = *this;
-	for(size_t i=0;i<first.rsize;i++){
-		for(size_t j=0;j<second.csize;j++){
-			res(i,j) = first(i,0)*second(0,j);
-			for(size_t k=1;k<depth;k++){
-				res(i,j) += first(i,k)*second(k,j);
-			}
-		}
-	}
-}
-
-void Matrix::maxmult(const Matrix& second, Matrix& res){
-	const size_t depth = second.rsize;
-	Matrix& first = *this;
-	for(size_t i=0;i<first.rsize;i++){
-		for(size_t j=0;j<second.csize;j++){
-			res(i,j) = first(i,0)*second(0,j);
-			for(size_t k=1;k<depth;k++){
-				res(i,j) = fmax(res(i,j), first(i,k)*second(k,j));
-			}
-			
-		}
-	}
-}
-
-double Matrix::scale(){
-	double sum = 0.0;
-	for(size_t i = 0; i < rsize*csize; ++i)
-		sum += matrix[i];
-	for(unsigned i = 0; i < rsize*csize; ++i)
-		matrix[i] /= sum;
-	return sum;
-}
+#include<cstdlib>
 
 std::ostream &operator<<(std::ostream &out, const Matrix &mat){
     for(size_t i = 0; i < mat.getRSize(); ++i){
@@ -45,3 +10,51 @@ std::ostream &operator<<(std::ostream &out, const Matrix &mat){
     }
     return out;
 }
+
+void Matrix::mult(const Matrix& second, Matrix& res){
+	const size_t depth = second.rsize;
+	Matrix& first = *this;
+	for(size_t rindex=0;rindex<first.rsize;rindex++){
+		for(size_t cindex=0;cindex<second.csize;cindex++){
+			res(rindex,cindex) = first(rindex,0)*second(0,cindex);
+			for(size_t kindex=1;kindex<depth;kindex++){
+				res(rindex,cindex) += first(rindex,kindex)*second(kindex,cindex);
+			}
+		}
+	}
+}
+
+void Matrix::diagmult(const Matrix& second, Matrix& res){
+	Matrix& first = *this;
+	for(size_t rindex=0;rindex<first.rsize;rindex++){
+		for(size_t cindex=0;cindex<first.csize;cindex++){
+			res(rindex,cindex) = first(rindex, cindex)*second(0, rindex);
+		}
+	}
+	
+}
+
+void Matrix::maxmult(const Matrix& second, Matrix& res){
+	const size_t depth = second.rsize;
+	Matrix& first = *this;
+	for(size_t rindex=0;rindex<first.rsize;rindex++){
+		for(size_t cindex=0;cindex<second.csize;cindex++){
+			res(rindex,cindex) = first(rindex,0)*second(0,cindex);
+			for(size_t kindex=1;kindex<depth;kindex++){
+				res(rindex,cindex) = fmax(res(rindex,cindex),first(rindex,kindex)*second(kindex,cindex));
+			}
+			
+		}
+	}
+}
+double Matrix::scale(){
+	double sum = 0.0;
+	for(size_t i = 0; i < rsize*csize; ++i)
+		sum += matrix[i];
+	for(unsigned i = 0; i < rsize*csize; ++i)
+		matrix[i] /= sum;
+	return sum;
+}
+
+
+
