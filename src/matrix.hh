@@ -13,6 +13,13 @@ class Matrix{
 	
 public :
 	Matrix():matrix (NULL){};
+	Matrix(const Matrix& add){
+		this->allocate(add.rsize,add.csize);
+		for(int i=0;i<rsize*csize;i++){
+			this->matrix[i]=add.matrix[i];
+		}
+	}
+	
 	Matrix(size_t rsize,size_t csize)
 		:matrix(new double[rsize*csize]),rsize(rsize),csize(csize){};
 	void allocate(size_t rsize,size_t csize){
@@ -26,6 +33,12 @@ public :
 	void diagmult(const Matrix& second,Matrix& res);
 	void maxmult(const Matrix& second,Matrix& res);
 	double scale();
+	Matrix &operator=(const Matrix &a){
+		for(int i=0;i<rsize*csize;i++){
+			this->matrix[i]=a.matrix[i];
+		}
+		return *this;
+	}
 	double &operator()(size_t r,size_t c){return matrix[idx(r,c)];}
 	double operator()(size_t r,size_t c) const {return matrix[idx(r,c)];}
 	

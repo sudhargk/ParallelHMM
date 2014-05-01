@@ -1,7 +1,7 @@
 #include "hmm.hh"
 #include <iostream>
 using namespace std;
-#define MAX_LENGTH 10
+
 
 void HMM::print(){
 	cout<<"# of States "<<noOfStates<<endl;
@@ -25,15 +25,6 @@ void HMM::precomputeTransientC(){
 	}
 }
 
-
-double HMM::evaluate(const Sequence sequence){
-	precomputeTransientC();
-	
-}
-void HMM::viterbiAlign(Sequence sequence){
-
-}
-	
 
 
 

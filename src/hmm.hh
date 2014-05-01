@@ -10,6 +10,8 @@
 class HMM{
 	size_t noOfStates;
 	size_t noOfSymbols;	
+	void* evalV(void*);
+	void* evalM(void*);
 public:
 	Matrix piMat;
 	Matrix transMat;
