@@ -1,125 +1,111 @@
 #include "sequence.hh"
 #include "hmm.hh"
+#include "matrix.hh"
+#include "jobq.cc"
 #include <vector>
-#include <thread>
-#include <pthread.h>
 #include <cmath>
+#include <pthread.h>
 #define BLOCK_SIZE 5
 #define MAX_PROCESSOR 4
 
-struct Block{
-	int start;
-	int end;
-	Block():start(-1),seen(false){}
-	Matrix result;
-	bool setseen(){
-		seen = true;
-	}
-	bool is_null(){
-		if(start==-1){
-			return true;
-		}
-		return false;
-	}
-private:
-	bool seen;
-};
-
-class BlockQ{
-	vector <Block> blocks;
-	pthread_mutex_t qlock;
-	size_t rear;
-public:
-	BlockQ(size_t seq_len,int base_size){
-		int i=base_size;
-		Block mBlock;
-		for(;i<seq_len;i++){
-			mBlock.start = i;
-			mBlock.end = i+BLOCK_SIZE;
-			blocks.push_back(mBlock);
-		}
-		blocks[blocks.size()-1].end = seq_len;
-		rear = blocks.size();
-	}
-	Block pop(){
-		Block ret;
-		pthread_mutex_lock(&qlock);
-		if(!isEmpty()){
-			rear--;
-			ret = blocks[rear];
-		}
-		pthread_mutex_unlock(&qlock);
-	}
-	bool isEmpty(){
-		if(rear<0){
-			return true;
-		}
-		return false;
-	}
-};
-
-struct VThreadArgs{
+struct ThreadArgs{
 	Sequence sequence;
-	Block block;
-	VThreadArgs(Sequence sequence,Block block)
-		:sequence(sequence),block(block){}
+	HMM* hmm;
+	JobQ jobq;
+	ThreadArgs(Sequence sequence,HMM* hmm,JobQ jobq):sequence(sequence),hmm(hmm),jobq(jobq){}
 };
 
-struct MThreadArgs{
-	Sequence sequence;
-	BlockQ blockq;
-	MThreadArgs(Sequence sequence,BlockQ blockq)
-		:sequence(sequence),blockq(blockq){}
-};
-
-
-double HMM::evaluate (const Sequence sequence){
-// 	size_t numP = std::thread::hardware_concurrency();
-	size_t numP = MAX_PROCESSOR;
-	size_t block_size = ceil(noOfStates*sequence.length()/(noOfStates+numP-1));
-	
-	Block vblock;
-	vblock.start=0;
-	vblock.end=block_size;
-	VThreadArgs vthreadArg(sequence,vblock);
-	
-	
-	BlockQ blocks(sequence.length(),block_size);
-	MThreadArgs mthreadArg(sequence,blocks);
-	
-	pthread_t vthreadId,mthreadId[numP-1];
-	pthread_create(&vthreadId,NULL,evalM,&vblock);
-	
-	for(int i=0;i<numP-1;i++){
-		pthread_create(&mthreadId[i],NULL,evalV,&blocks);
-	}
-}
-
-void* HMM::evalV(void *arg){
-	VThreadArgs threadargs = *(VThreadArgs*)(arg);
-	Matrix *temp = new Matrix(1,noOfStates),*res=new Matrix(1,noOfStates); 
-	res= &transientC[threadargs.sequence[threadargs.block.start]];
-	for(int i=threadargs.block.start;i<threadargs.block.end;i++){
-		res->mult(&transientC[threadargs.sequence[i]],temp);
-		*res=*temp;
-	}
-	delete temp;
-	delete res;
-}
-
-void* HMM:: evalM(void *arg){
-	MThreadArgs threadargs= *(MThreadArgs*)(arg);
-	Matrix *temp = new Matrix(noOfStates,noOfStates),*res=new Matrix(noOfStates,noOfStates);
-	while(threadargs.blockq.isEmpty()){
-		Block block = threadargs.blockq.pop();
-		if(!block.is_null()){
-			res= &transientC[threadargs.sequence[block.start]];
-			for(int i=block.start;i<block.end;i++){
-				res->mult(&transientC[threadargs.sequence[i]],temp);
-				*res=*temp;
+void * evalV(void *arg){
+	ThreadArgs* threadargs = (ThreadArgs*)(arg);
+	HMM* hmm = threadargs->hmm;
+	JobQ* jobq = &threadargs->jobq;
+	Matrix *temp = new Matrix(1,hmm->noOfStates);
+	Matrix *res=new Matrix(1,hmm->noOfStates); 
+	size_t bindex=-1;
+	bool first= true;
+	while(!jobq->isEmpty()){
+		bindex= jobq->remove(true);
+		if(!jobq->isEmptyIndex(bindex)){
+			if(first){
+				*res= hmm->piMat;
+				first=false;
 			}
+			int i=jobq->getBlockStart(bindex);
+			for(;i<jobq->getBlockEnd(bindex);i++){
+				res->mult((hmm->transientC)[threadargs->sequence(i)],*temp);
+				*res=*temp;
+				res->scale();
+			}
+		}
+	}
+	if(bindex>0){
+		jobq->results[bindex].allocate(1,hmm->noOfStates);
+		jobq->results[bindex]=*res;
+		//cout<<jobq->results[bindex];
+	}
+	delete temp;delete res;
+}
+
+void * evalM(void *arg){
+	ThreadArgs* threadargs= (ThreadArgs*)(arg);
+	HMM* hmm = threadargs->hmm;
+	JobQ* jobq = &threadargs->jobq;
+	Matrix* temp = new Matrix(hmm->noOfStates,hmm->noOfStates);
+	Matrix* res = new Matrix(hmm->noOfStates,hmm->noOfStates);
+	while(!jobq->isEmpty()){
+		size_t bindex= jobq->remove(false);
+		if(!jobq->isEmptyIndex(bindex)){
+			int i=jobq->getBlockStart(bindex);
+			*res= (hmm->transientC)[threadargs->sequence(i)];
+			for(i=i+1;i<jobq->getBlockEnd(bindex);i++){
+				res->mult((hmm->transientC)[threadargs->sequence(i)],*temp);
+				*res=*temp;
+				res->scale();
+			}
+			jobq->results[bindex].allocate(hmm->noOfStates,hmm->noOfStates);
+			jobq->results[bindex]=*res;
 		}
 	}
 	delete temp;delete res;
 }
 
+double HMM::evaluate (const Sequence sequence){
+// 	size_t numP = std::thread::hardware_concurrency();
+	size_t numP = MAX_PROCESSOR;
+	size_t seq_len = sequence.length();
+	size_t numBlocks = ceil(sqrt(seq_len));
+	cout<<"Number of blocks :: "<<numBlocks<<endl;
+	JobQ jobq(seq_len,numBlocks);
+	ThreadArgs args(sequence,this,jobq);
+	pthread_t vthreadId,mthreadId[numP-1];
+	std::cout<<"Evaluation....";
+  	pthread_create(&vthreadId,NULL,evalV,&args);
+	for(int i=0;i<numP-1;i++){
+		pthread_create(&mthreadId[i],NULL,evalM,&args);
+	}
+	for(int i=0;i<numP-1;i++){
+		pthread_join(mthreadId[i],NULL);
+	}
+  	pthread_join(vthreadId,NULL);
+	
+	Matrix *temp = new Matrix(1,this->noOfStates);
+	Matrix *res = new Matrix(1,this->noOfStates);
+	
+	if(jobq.getHeadIdx()==0){
+		*res = piMat;
+	}else{
+		*res = jobq.results[jobq.getHeadIdx()];
+	}
+	for(int idx=jobq.getHeadIdx()+1;idx<numBlocks;idx++){
+		res->mult(jobq.results[idx],*temp);
+		*res=*temp;
+	}
+	
+	//std::cout<<*res;
+	delete res;delete temp;
+	return 0.0;
+}
+
+
+
+ 

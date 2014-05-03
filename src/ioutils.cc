@@ -14,7 +14,7 @@ void readConfigFile(string configFile,HMM& model){
 	size_t noOfStates;
 	size_t noOfSymbols;
 	string line;
-	cout<<"Sequence File : "<<configFile<<endl;
+	cout<<"Configuration File : "<<configFile<<endl;
 	ifstream input;
 	input.open( configFile.c_str() );
 	
@@ -22,10 +22,10 @@ void readConfigFile(string configFile,HMM& model){
 	while( k < 2 ){
 		string temp;
 		int i = 0;
-		getline( input, line, '\n' );
+		getline( input, line, '\n');
+		cout<<line<<endl;
 		istringstream iss(line);
-		while( iss >> temp )
-		{
+		while( iss >> temp ){
 			if( temp.compare("states:") ==0 || temp.compare("States:") ==0 )
 			{
 				iss >> noOfStates;
@@ -45,7 +45,6 @@ void readConfigFile(string configFile,HMM& model){
 	k=0;
 	while( k < noOfStates ){
 		getline(input, line, '\n');
-		
 		if( line == ""){
 			cout << "BLANK LINE!" << endl;
 			continue;
@@ -82,8 +81,7 @@ void readSeqFile(string seqFile,vector<Sequence>& sequences){
 	int i = 0;
 	
 	//Reading test.seq
-	while( getline(input, line, '\n') )
-	{
+	while( getline(input, line, '\n') ){
 		Sequence sequence;
 		istringstream iss(line);
 		while( iss >> element ){

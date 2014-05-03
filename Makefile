@@ -1,6 +1,6 @@
 #makefile
 CFLAGS = -c -O
-CXX=g++
+CXX=g++ -std=c++0x -pthread
 OUTPUT=bin/
 SRC=src/
 TEST=test/
@@ -15,6 +15,7 @@ ioutilstest : matrix_c hmm ioutilstest_c sequence
 
 hmmtest_c : 
 	$(CXX) $(CFLAGS) $(TEST)hmmtest.cc -o $(OUTPUT)$@
+	
 ioutilstest_c :
 	$(CXX) $(CFLAGS) $(TEST)ioutilstest.cc -o $(OUTPUT)$@
 
@@ -35,5 +36,3 @@ matrixtest_c : $(SRC)matrix.hh $(TEST)matrixtest.c
 
 matrix_c : $(SRC)matrix.hh $(SRC)matrix.cc
 	$(CXX) $(CFLAGS) $(SRC)matrix.cc -o $(OUTPUT)$@
-
-

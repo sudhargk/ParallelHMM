@@ -8,25 +8,22 @@
 #include "sequence.hh"
 
 class HMM{
-	size_t noOfStates;
-	size_t noOfSymbols;	
-	void* evalV(void*);
-	void* evalM(void*);
 public:
 	Matrix piMat;
 	Matrix transMat;
 	vector<Matrix> emissionMat;
 	vector<Matrix> transientC;
-
+	size_t noOfStates;
+	size_t noOfSymbols;
 	void set(size_t noOfStates, size_t noOfSymbols){
-			this->noOfStates=noOfStates;
-			this->noOfSymbols=noOfSymbols;
-			this->piMat.allocate(1,noOfSymbols);
-			this->transMat.allocate(noOfStates,noOfStates);
-			this->emissionMat.resize(noOfSymbols);
-			for(int index=0;index<noOfSymbols;index++){
-				this->emissionMat[index].allocate(1,noOfStates);
-			}
+		this->noOfStates=noOfStates;
+		this->noOfSymbols=noOfSymbols;
+		this->piMat.allocate(1,noOfSymbols);
+		this->transMat.allocate(noOfStates,noOfStates);
+		//this->emissionMat.resize(noOfSymbols);
+		for(int index=0;index<noOfSymbols;index++){
+			this->emissionMat.push_back(Matrix(1,noOfStates));
+		}
 	}
 	void precomputeTransientC();
 	void print();
