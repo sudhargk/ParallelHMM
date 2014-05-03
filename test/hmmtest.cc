@@ -35,6 +35,6 @@ int main(int argc, char *argv[]){
 	for(idx=0;idx<sequences.size();idx++){
 		std::cout<<"Length :: "<<sequences[idx].length()<<endl;
 		std::cout<<sequences[idx]<<endl;
-		hmm.evaluate(sequences[idx]);
+		std::cout<<"Likelihood :: "<<hmm.evaluate(sequences[idx])<<endl;
 	}
 }

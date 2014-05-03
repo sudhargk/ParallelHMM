@@ -10,8 +10,8 @@ int main(int argc, char *argv[]){
 	string configFile;
 	
 	if( argc < 3 ){
-		seqFile = "test.seq";
-		configFile = "test.hmm";
+		seqFile = "test/test.seq";
+		configFile = "test/test.hmm";
 	}
 	else{
 		seqFile = argv[1];

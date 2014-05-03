@@ -12,7 +12,7 @@ class Matrix{
 	size_t rsize,csize;
 	
 public :
-	Matrix():matrix (NULL){};
+	Matrix(): matrix(NULL), rsize(0), csize(0) { }
 	Matrix(const Matrix& add){
 		this->allocate(add.rsize,add.csize);
 		for(int i=0;i<rsize*csize;i++){

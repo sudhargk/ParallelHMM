@@ -9,9 +9,12 @@ class JobQ{
 	pthread_mutex_t mutex_lock;
 public:
 	vector<Matrix> results;
-	JobQ(size_t seq_len,size_t numBlocks):numBlocks(numBlocks), seq_len(seq_len), head(0), tail(numBlocks), results(numBlocks){
+	vector<double> likelihood;
+	JobQ(size_t seq_len,size_t nBlocks):
+	numBlocks(nBlocks), seq_len(seq_len), head(0), tail(nBlocks),
+	results(nBlocks), likelihood(nBlocks,0.0){
 		 pthread_mutex_init(&mutex_lock, 0);
-		 block_size = ceil(seq_len/numBlocks);
+		 block_size = ceil(seq_len/nBlocks);
 	}
 	size_t remove(bool start){
 		size_t index=EMPTY;

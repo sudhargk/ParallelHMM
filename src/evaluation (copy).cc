@@ -20,7 +20,7 @@ void * evalV(void *arg){
 	ThreadArgs* threadargs = (ThreadArgs*)(arg);
 	HMM* hmm = threadargs->hmm;
 	JobQ* jobq = &threadargs->jobq;
-	Matrix temp(1,hmm->noOfStates);
+	Matrix *temp = new Matrix(1,hmm->noOfStates);
 	Matrix *res=new Matrix(1,hmm->noOfStates); 
 	size_t bindex=-1;
 	bool first= true;
@@ -35,8 +35,8 @@ void * evalV(void *arg){
 			}
 			int i=jobq->getBlockStart(bindex);
 			for(;i<jobq->getBlockEnd(bindex);i++){
-				res->mult((hmm->transientC)[threadargs->sequence(i)],temp);
-				*res=temp;
+				res->mult((hmm->transientC)[threadargs->sequence(i)],*temp);
+				*res=*temp;
 				logLikeliHood+=log(res->scale());
 			}
 		}else{
@@ -49,14 +49,14 @@ void * evalV(void *arg){
 		jobq->likelihood[bindex]=logLikeliHood;
 		//cout<<jobq->results[bindex];
 	}
-	delete res;
+	delete temp;delete res;
 }
 
 void * evalM(void *arg){
 	ThreadArgs* threadargs= (ThreadArgs*)(arg);
 	HMM* hmm = threadargs->hmm;
 	JobQ* jobq = &threadargs->jobq;
-	Matrix temp(hmm->noOfStates,hmm->noOfStates);
+	Matrix* temp = new Matrix(hmm->noOfStates,hmm->noOfStates);
 	Matrix* res = new Matrix(hmm->noOfStates,hmm->noOfStates);
 	while(!jobq->isEmpty()){
 		size_t bindex= jobq->remove(false);
@@ -66,8 +66,8 @@ void * evalM(void *arg){
 			double logLikeliHood = 0.0;
 			*res= (hmm->transientC)[threadargs->sequence(i)];
 			for(i=i+1;i<jobq->getBlockEnd(bindex);i++){
-				res->mult((hmm->transientC)[threadargs->sequence(i)],temp);
-				*res=temp;
+				res->mult((hmm->transientC)[threadargs->sequence(i)],*temp);
+				*res=*temp;
 				logLikeliHood+=log(res->scale());
 			}
 			jobq->results[bindex].allocate(hmm->noOfStates,hmm->noOfStates);
@@ -77,7 +77,7 @@ void * evalM(void *arg){
 			break;
 		}
 	}
-	delete res;
+	delete temp;delete res;
 }
 
 double HMM::evaluate (const Sequence sequence){
@@ -92,15 +92,15 @@ double HMM::evaluate (const Sequence sequence){
 	pthread_t mthreadId[numP-1];
 	std::cout<<"Evaluation....";
    	pthread_create(&vthreadId,NULL,evalV,&args);
-// 	for(int i=0;i<numP-1;i++){
-// 		pthread_create(&mthreadId[i],NULL,evalM,&args);
-// 	}
-// 	for(int i=0;i<numP-1;i++){
-// 		pthread_join(mthreadId[i],NULL);
-// 	}
+	for(int i=0;i<numP-1;i++){
+		pthread_create(&mthreadId[i],NULL,evalM,&args);
+	}
+	for(int i=0;i<numP-1;i++){
+		pthread_join(mthreadId[i],NULL);
+	}
    	pthread_join(vthreadId,NULL);
 	
-	Matrix temp(1,this->noOfStates);
+	Matrix *temp = new Matrix(1,this->noOfStates);
 	Matrix *res = new Matrix(1,this->noOfStates);
 	
 	if(jobq.getHeadIdx()==0){
@@ -110,12 +110,11 @@ double HMM::evaluate (const Sequence sequence){
 	}
 	double likelihood = jobq.likelihood[jobq.getHeadIdx()];
 	for(int idx=jobq.getHeadIdx()+1;idx<numBlocks;idx++){
-		res->mult(jobq.results[idx],temp);
+		res->mult(jobq.results[idx],*temp);
 		likelihood+=log(res->scale())+jobq.likelihood[idx];
-		*res=temp;
+		*res=*temp;
 	}
-	cout<<*res;
-	delete res;
+	delete res;delete temp;
 	return likelihood;
 }
 

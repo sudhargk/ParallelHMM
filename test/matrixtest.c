@@ -1,8 +1,9 @@
 #include "../src/matrix.hh"
 #include <iostream>
+#include <vector>
 using namespace std;
 int main(){
-	Matrix m(2,2);
+	/*Matrix m(2,2);
 	m(0,0)=1;
 	m(0,1)=2;
 	m(1,0)=2;
@@ -39,5 +40,20 @@ int main(){
 	m.diagmult(p,res);
 	cout<<"\nResult Diag Matrix Max Mult"<<std::endl;
 	std::cout<<res;
+	*/
+	vector<Matrix> k;
+	/*Matrix m = k[0];
+	m.allocate(2,2);
+	m(0,0)=2;
+	m(0,1)=2;
+	m(1,0)=2;
+	m(1,1)=2;
+	*/
+	k.resize(4);
+	for (vector<Matrix>::iterator i = k.begin(); i != k.end(); ++i) {
+		cout<<"\nMatrix One"<<std::endl;
+		cout<<*i;
+	}
+	
 	return 0;
 }

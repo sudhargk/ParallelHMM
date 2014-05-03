@@ -23,7 +23,7 @@ void readConfigFile(string configFile,HMM& model){
 		string temp;
 		int i = 0;
 		getline( input, line, '\n');
-		cout<<line<<endl;
+		//cout<<line<<endl;
 		istringstream iss(line);
 		while( iss >> temp ){
 			if( temp.compare("states:") ==0 || temp.compare("States:") ==0 )
@@ -46,10 +46,10 @@ void readConfigFile(string configFile,HMM& model){
 	while( k < noOfStates ){
 		getline(input, line, '\n');
 		if( line == ""){
-			cout << "BLANK LINE!" << endl;
+			//cout << "BLANK LINE!" << endl;
 			continue;
 		}
-		cout<< "This line : " << line << endl;
+		//cout<< "This line : " << line << endl;
 		
 		istringstream iss(line);
 		iss>>recurTrans;
@@ -57,7 +57,7 @@ void readConfigFile(string configFile,HMM& model){
 		for( int j = 0 ; j < noOfSymbols ; j++ )
 			iss >> model.emissionMat[j](0,k);
 		getline( input, line, '\n');
-		cout<< "This line : " << line << endl;
+		//cout<< "This line : " << line << endl;
 		if(k<noOfStates-1){
 			istringstream iss2(line);
 			iss2 >> nextTrans;

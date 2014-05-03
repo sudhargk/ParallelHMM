@@ -1,5 +1,5 @@
 #makefile
-CFLAGS = -c -O
+CFLAGS = -c -O0 -g
 CXX=g++ -std=c++0x -pthread
 OUTPUT=bin/
 SRC=src/
