@@ -16,7 +16,7 @@ public:
 		 pthread_mutex_init(&mutex_lock, 0);
 		 block_size = ceil(seq_len/nBlocks);
 	}
-	size_t remove(bool start){
+	int remove(bool start){
 		size_t index=EMPTY;
 		pthread_mutex_lock(&mutex_lock);
 			if(!isEmpty()){
@@ -48,7 +48,7 @@ public:
 		return block_size*index;
 	}
 	size_t getBlockEnd(size_t index){
-		return min((block_size+1)*index,seq_len);
+		return min(block_size*(index+1),seq_len);
 	}
 	
 	~JobQ(){

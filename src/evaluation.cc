@@ -12,113 +12,106 @@
 struct ThreadArgs{
 	Sequence sequence;
 	HMM* hmm;
-	JobQ jobq;
-	ThreadArgs(Sequence sequence,HMM* hmm,JobQ jobq):sequence(sequence),hmm(hmm),jobq(jobq){}
+	JobQ* jobq;
+	ThreadArgs(HMM* hmm,JobQ* jobq,Sequence sequence):sequence(sequence),hmm(hmm),jobq(jobq){}
 };
 
 void * evalV(void *arg){
 	ThreadArgs* threadargs = (ThreadArgs*)(arg);
 	HMM* hmm = threadargs->hmm;
-	JobQ* jobq = &threadargs->jobq;
+	JobQ* jobq = threadargs->jobq;
 	Matrix temp(1,hmm->noOfStates);
-	Matrix *res=new Matrix(1,hmm->noOfStates); 
-	size_t bindex=-1;
-	bool first= true;
+	Matrix res(1,hmm->noOfStates); 
+	res= hmm->piMat;
+	int bindex=-1;
 	double logLikeliHood = 0.0;
 	while(!jobq->isEmpty()){
 		bindex= jobq->remove(true);
-		printf("VINDEX (%d)\n",(int)bindex);
 		if(!jobq->isEmptyIndex(bindex)){
-			if(first){
-				*res= hmm->piMat;
-				first=false;
-			}
 			int i=jobq->getBlockStart(bindex);
 			for(;i<jobq->getBlockEnd(bindex);i++){
-				res->mult((hmm->transientC)[threadargs->sequence(i)],temp);
-				*res=temp;
-				logLikeliHood+=log(res->scale());
+				res.mult((hmm->transientC)[threadargs->sequence(i)],temp);
+				res=temp;
+				logLikeliHood+=log(res.scale());
 			}
 		}else{
 			break;
 		}
 	}
-	if(bindex>0){
+	bindex = jobq->getHeadIdx()-1;
+	if(bindex>=0){
+		printf("VINDEX ::  (%d)  Likelihood :: %f \n",(int)bindex,logLikeliHood);
 		jobq->results[bindex].allocate(1,hmm->noOfStates);
-		jobq->results[bindex]=*res;
+		jobq->results[bindex]=res;
 		jobq->likelihood[bindex]=logLikeliHood;
-		//cout<<jobq->results[bindex];
 	}
-	delete res;
 }
 
 void * evalM(void *arg){
 	ThreadArgs* threadargs= (ThreadArgs*)(arg);
 	HMM* hmm = threadargs->hmm;
-	JobQ* jobq = &threadargs->jobq;
+	JobQ* jobq = threadargs->jobq;
 	Matrix temp(hmm->noOfStates,hmm->noOfStates);
-	Matrix* res = new Matrix(hmm->noOfStates,hmm->noOfStates);
+	Matrix res (hmm->noOfStates,hmm->noOfStates);
 	while(!jobq->isEmpty()){
-		size_t bindex= jobq->remove(false);
-		printf("MINDEX (%d)\n",(int)bindex);
+	int bindex= jobq->remove(false);
 		if(!jobq->isEmptyIndex(bindex)){
 			int i=jobq->getBlockStart(bindex);
 			double logLikeliHood = 0.0;
-			*res= (hmm->transientC)[threadargs->sequence(i)];
+			res= (hmm->transientC)[threadargs->sequence(i)];
 			for(i=i+1;i<jobq->getBlockEnd(bindex);i++){
-				res->mult((hmm->transientC)[threadargs->sequence(i)],temp);
-				*res=temp;
-				logLikeliHood+=log(res->scale());
+				res.mult((hmm->transientC)[threadargs->sequence(i)],temp);
+				res=temp;
+				logLikeliHood+=log(res.scale());
 			}
 			jobq->results[bindex].allocate(hmm->noOfStates,hmm->noOfStates);
-			jobq->results[bindex]=*res;
+			jobq->results[bindex]=res;
 			jobq->likelihood[bindex]=logLikeliHood;
+			printf("MINDEX ::  (%d)  Likelihood :: %f \n",(int)bindex,logLikeliHood);
 		}else{
 			break;
 		}
 	}
-	delete res;
 }
 
-double HMM::evaluate (const Sequence sequence){
+double HMM::evaluate (Sequence sequence){
 // 	size_t numP = std::thread::hardware_concurrency();
-	size_t numP = MAX_PROCESSOR;
+// 	size_t numP = MAX_PROCESSOR;
+	size_t numP = 4;
 	size_t seq_len = sequence.length();
 	size_t numBlocks = ceil(sqrt(seq_len));
 	cout<<"Number of blocks :: "<<numBlocks<<endl;
 	JobQ jobq(seq_len,numBlocks);
-	ThreadArgs args(sequence,this,jobq);
+	ThreadArgs args(this,&jobq,sequence);
 	pthread_t vthreadId;
 	pthread_t mthreadId[numP-1];
 	std::cout<<"Evaluation....";
    	pthread_create(&vthreadId,NULL,evalV,&args);
-// 	for(int i=0;i<numP-1;i++){
-// 		pthread_create(&mthreadId[i],NULL,evalM,&args);
-// 	}
-// 	for(int i=0;i<numP-1;i++){
-// 		pthread_join(mthreadId[i],NULL);
-// 	}
+	for(int i=0;i<numP-1;i++){
+		pthread_create(&mthreadId[i],NULL,evalM,&args);
+	}
+	for(int i=0;i<numP-1;i++){
+		pthread_join(mthreadId[i],NULL);
+	}
    	pthread_join(vthreadId,NULL);
 	
 	Matrix temp(1,this->noOfStates);
-	Matrix *res = new Matrix(1,this->noOfStates);
-	
+	Matrix res(1,this->noOfStates);
+	double likelihood;
 	if(jobq.getHeadIdx()==0){
-		*res = piMat;
+		res = piMat;
+		likelihood=0.0;
 	}else{
-		*res = jobq.results[jobq.getHeadIdx()];
+		res = jobq.results[jobq.getHeadIdx()-1];
+		likelihood = jobq.likelihood[jobq.getHeadIdx()-1];
 	}
-	double likelihood = jobq.likelihood[jobq.getHeadIdx()];
-	for(int idx=jobq.getHeadIdx()+1;idx<numBlocks;idx++){
-		res->mult(jobq.results[idx],temp);
-		likelihood+=log(res->scale())+jobq.likelihood[idx];
-		*res=temp;
+	double tempVal;
+	for(int idx=jobq.getHeadIdx();idx<numBlocks;idx++){
+		res.mult(jobq.results[idx],temp);
+		tempVal=log(res.scale());
+		likelihood+= tempVal+jobq.likelihood[idx];
+		printf("INDEX ::  (%d)  TEMP :: (%f) Likelihood :: (%f) LikelihoodX :: (%f)\n",idx,tempVal,likelihood,jobq.likelihood[idx]);
+		res=temp;
 	}
-	cout<<*res;
-	delete res;
 	return likelihood;
-}
-
-
-
- 
+} 
