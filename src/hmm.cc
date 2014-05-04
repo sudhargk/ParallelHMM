@@ -22,6 +22,7 @@ void HMM::precomputeTransientC(){
 		Matrix C(noOfStates,noOfStates);
 		transMat.diagmult(emissionMat[k],C);
 		transientC.push_back(C);
+        cout << "C" << k+1 << ":" << endl << C;
 	}
 }
 

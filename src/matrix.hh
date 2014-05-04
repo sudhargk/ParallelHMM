@@ -22,6 +22,7 @@ public :
 	
 	Matrix(size_t rsize,size_t csize)
 		:matrix(new double[rsize*csize]),rsize(rsize),csize(csize){};
+
 	void allocate(size_t rsize,size_t csize){
 		this->rsize = rsize;
 		this->csize = csize;

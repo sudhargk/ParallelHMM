@@ -11,6 +11,7 @@ std::ostream &operator<<(std::ostream &out, const Matrix &mat){
     return out;
 }
 
+
 void Matrix::mult(const Matrix& second, Matrix& res){
 	const size_t depth = second.rsize;
 	Matrix& first = *this;
@@ -28,10 +29,9 @@ void Matrix::diagmult(const Matrix& second, Matrix& res){
 	Matrix& first = *this;
 	for(size_t rindex=0;rindex<first.rsize;rindex++){
 		for(size_t cindex=0;cindex<first.csize;cindex++){
-			res(rindex,cindex) = first(rindex, cindex)*second(0, rindex);
+			res(rindex,cindex) = first.matrix[cindex*first.rsize+rindex]*second(0, rindex);
 		}
 	}
-	
 }
 
 void Matrix::maxmult(const Matrix& second, Matrix& res){

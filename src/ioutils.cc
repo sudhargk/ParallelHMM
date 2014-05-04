@@ -65,10 +65,10 @@ void readConfigFile(string configFile,HMM& model){
 		}
 		k++;
 	}
-	for (int i=0;i<noOfSymbols;i++){
-	}
+	//for (int i=0;i<noOfSymbols;i++){
+	//}
 	for(k=0;k<noOfStates;k++){
-		model.piMat(0,k)=(double)1/noOfStates;
+		model.piMat(k,0)=(double)1/noOfStates;
 	}
 }
 
