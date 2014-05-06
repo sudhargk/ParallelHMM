@@ -18,7 +18,7 @@ public:
 	void set(size_t noOfStates, size_t noOfSymbols){
 		this->noOfStates=noOfStates;
 		this->noOfSymbols=noOfSymbols;
-		this->piMat.allocate(noOfSymbols,1);
+		this->piMat.allocate(noOfStates,1);
 		this->transMat.allocate(noOfStates,noOfStates);
 		//this->emissionMat.resize(noOfSymbols);
 		for(int index=0;index<noOfSymbols;index++){

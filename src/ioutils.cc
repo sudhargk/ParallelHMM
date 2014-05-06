@@ -14,7 +14,7 @@ void readConfigFile(string configFile,HMM& model){
 	size_t noOfStates;
 	size_t noOfSymbols;
 	string line;
-	cout<<"Configuration File : "<<configFile<<endl;
+	//cout<<"Configuration File : "<<configFile<<endl;
 	ifstream input;
 	input.open( configFile.c_str() );
 	
@@ -73,7 +73,7 @@ void readConfigFile(string configFile,HMM& model){
 }
 
 void readSeqFile(string seqFile,vector<Sequence>& sequences){
-	cout<<"Sequence File : "<<seqFile<<endl;
+	//cout<<"Sequence File : "<<seqFile<<endl;
 	ifstream input;
 	input.open( seqFile.c_str() );
 	size_t element;

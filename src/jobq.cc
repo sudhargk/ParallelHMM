@@ -30,7 +30,7 @@ public:
 						index=--tail;
 					}
 				}
-				cout<<"Index :: "<<index<<" Head :: "<<head<<" Tail :: "<<tail<<endl;
+				//cout<<"Index :: "<<index<<" Head :: "<<head<<" Tail :: "<<tail<<endl;
 			}
 		pthread_mutex_unlock(&mutex_lock);
 		return index;

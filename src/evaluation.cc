@@ -7,7 +7,7 @@
 #include <cmath>
 #include <pthread.h>
 #define BLOCK_SIZE 5
-#define MAX_PROCESSOR 4
+#define MAX_PROCESSOR 1
 
 struct ThreadArgs{
 	Sequence sequence;
@@ -81,11 +81,17 @@ double HMM::evaluate (Sequence sequence){
     size_t numP = MAX_PROCESSOR;
 	size_t seq_len = sequence.length();
 	size_t numBlocks = ceil(sqrt(seq_len));
-	cout<<"Number of blocks :: "<<numBlocks<<endl;
+// 	cout<<"Number of blocks :: "<<numBlocks<<endl;
 	JobQ jobq(seq_len,numBlocks);
 	ThreadArgs args(this,&jobq,sequence);
 	pthread_t vthreadId;
+	if(numP<1){
+		cout<<"Number of processors should atleast be one"<<endl;
+		exit(0);
+	}
+
 	pthread_t mthreadId[numP-1];
+	
     pthread_create(&vthreadId,NULL,evalV,&args);
     for(int i=0;i<numP-1;i++){
         pthread_create(&mthreadId[i],NULL,evalM,&args);
@@ -94,7 +100,7 @@ double HMM::evaluate (Sequence sequence){
         pthread_join(mthreadId[i],NULL);
     }
     pthread_join(vthreadId,NULL);
-	
+	cout<<(numP-1)<<endl;
 	Matrix temp(this->noOfStates,1);
 	Matrix res(this->noOfStates,1);
 	int idx = jobq.getHeadIdx(); 

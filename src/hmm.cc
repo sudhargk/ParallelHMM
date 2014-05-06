@@ -4,7 +4,7 @@ using namespace std;
 
 
 void HMM::print(){
-	cout<<"# of States "<<noOfStates<<endl;
+	/*cout<<"# of States "<<noOfStates<<endl;
 	cout<<"# of Symbols "<<noOfSymbols<<endl;
 	
 	cout<<"Transition Probability"<<std::endl;
@@ -14,7 +14,7 @@ void HMM::print(){
 		cout<<emissionMat[idx];
 	}
 	cout<<"Pi"<<std::endl;
-	cout<<piMat;
+	cout<<piMat;*/
 }
 
 void HMM::precomputeTransientC(){
@@ -22,7 +22,7 @@ void HMM::precomputeTransientC(){
 		Matrix C(noOfStates,noOfStates);
 		transMat.diagmult(emissionMat[k],C);
 		transientC.push_back(C);
-        cout << "C" << k+1 << ":" << endl << C;
+        //cout << "C" << k+1 << ":" << endl << C;
 	}
 }
 

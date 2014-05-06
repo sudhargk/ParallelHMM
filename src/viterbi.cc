@@ -156,15 +156,16 @@ void HMM::viterbiAlign (Sequence sequence){
 	Matrix temp(this->noOfStates,1);
 	Matrix res(this->noOfStates,1);
 	Matrix argres(this->noOfStates,1);
-	Matrix costTable(this->noOfStates,1);
-	Matrix costIDXTable(this->noOfStates,1);
+	Matrix costTable(this->noOfStates,numBlocks);
+	Matrix costIDXTable(this->noOfStates,numBlocks);
 	
 	int idx = 0; 
-	res = jobq.results[idx-1];
+	
 	double tempVal;
 	for(;idx<jobq.getHeadIdx();idx++){
 		costTable.assignVector(jobq.results[idx],idx);
 	}
+	res = jobq.results[idx-1];
 	int lastHeadProcessed = jobq.getHeadIdx();
 	for(;idx<numBlocks;idx++){
 		jobq.results[idx].argmaxmult(res,temp,argres);
