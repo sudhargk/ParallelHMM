@@ -34,6 +34,7 @@ void Matrix::diagmult(const Matrix& second, Matrix& res){
 	}
 }
 
+
 void Matrix::maxmult(const Matrix& second, Matrix& res){
 	const size_t depth = second.rsize;
 	Matrix& first = *this;

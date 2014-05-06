@@ -32,13 +32,10 @@ void * evalV(void *arg){
 			if (bindex==0) {
 				i = 1;
 				hmm->piMat.diagmult((hmm->emissionMat)[threadargs->sequence(0)],res);
-                cout << "C0" << endl << res;
 			}
 			for(;i<jobq->getBlockEnd(bindex);i++){
 				(hmm->transientC)[threadargs->sequence(i)].mult(res,temp);
 				res=temp;
-                cout << "In evalV:-" << endl;
-                cout << res << endl;
 				logLikeliHood+=log(res.scale());
 			}
 		}else{
@@ -47,7 +44,6 @@ void * evalV(void *arg){
 	}
 	bindex = jobq->getHeadIdx()-1;
 	if(bindex>=0){
-		printf("VINDEX ::  (%d)  Likelihood :: %f \n",(int)bindex,logLikeliHood);
 		jobq->results[bindex].allocate(1,hmm->noOfStates);
 		jobq->results[bindex]=res;
 		jobq->likelihood[bindex]=logLikeliHood;
@@ -65,23 +61,15 @@ void * evalM(void *arg){
 		if(!jobq->isEmptyIndex(bindex)){
 			int i = jobq->getBlockStart(bindex);
 			double logLikeliHood = 0.0;
-			if (bindex==0) {
-				hmm->piMat.diagmult((hmm->emissionMat)[threadargs->sequence(0)],res);
-			} else {
-				res = (hmm->transientC)[threadargs->sequence(i)];
-			}
-			
+			res = (hmm->transientC)[threadargs->sequence(i)];
 			for(i=i+1;i<jobq->getBlockEnd(bindex);i++){
 				(hmm->transientC)[threadargs->sequence(i)].mult(res,temp);
 				res=temp;
-                cout << "In evalM:-" << endl;
-                cout << res << endl;
 				logLikeliHood+=log(res.scale());
 			}
 			jobq->results[bindex].allocate(hmm->noOfStates,hmm->noOfStates);
 			jobq->results[bindex]=res;
 			jobq->likelihood[bindex]=logLikeliHood;
-			printf("MINDEX ::  (%d)  Likelihood :: %f \n",(int)bindex,logLikeliHood);
 		}else{
 			break;
 		}
@@ -98,36 +86,27 @@ double HMM::evaluate (Sequence sequence){
 	ThreadArgs args(this,&jobq,sequence);
 	pthread_t vthreadId;
 	pthread_t mthreadId[numP-1];
-	std::cout<<"Evaluation....";
-       //pthread_create(&vthreadId,NULL,evalV,&args);
+    pthread_create(&vthreadId,NULL,evalV,&args);
     for(int i=0;i<numP-1;i++){
         pthread_create(&mthreadId[i],NULL,evalM,&args);
     }
     for(int i=0;i<numP-1;i++){
         pthread_join(mthreadId[i],NULL);
     }
-       //pthread_join(vthreadId,NULL);
+    pthread_join(vthreadId,NULL);
 	
 	Matrix temp(this->noOfStates,1);
 	Matrix res(this->noOfStates,1);
 	int idx = jobq.getHeadIdx(); 
 	double likelihood = 0.0;
-	if (idx == 0) {
-		res = jobq.results[0];
-		likelihood = jobq.likelihood[0];
-	} else {
-		res = jobq.results[idx-1];
-		likelihood = jobq.likelihood[idx-1];
-	} 
+	res = jobq.results[idx-1];
+	likelihood = jobq.likelihood[idx-1];
 	double tempVal;
-	for(idx= idx+1;idx<numBlocks;idx++){
+	for(;idx<numBlocks;idx++){
 		jobq.results[idx].mult(res,temp);
+		res=temp;
 		tempVal=log(res.scale());
 		likelihood+= tempVal+jobq.likelihood[idx];
-		printf("INDEX ::  (%d)  TEMP :: (%f) Likelihood :: (%f) LikelihoodX :: (%f)\n",idx,tempVal,likelihood,jobq.likelihood[idx]);
-		res=temp;
-        cout << "In evaluation:-" << endl;
-        cout << res << endl;
 	}
 	return likelihood;
 } 

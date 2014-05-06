@@ -22,8 +22,10 @@ public:
 			if(!isEmpty()){
 				if(start){
 					index=head++;
-				}else{
-					index=--tail;
+				}else{ 
+					if(tail>1){
+						index=--tail;
+					}
 				}
 				cout<<"Index :: "<<index<<" Head :: "<<head<<" Tail :: "<<tail<<endl;
 			}

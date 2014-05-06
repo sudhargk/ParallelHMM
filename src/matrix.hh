@@ -32,6 +32,7 @@ public :
 	size_t getCSize() const {return csize;};
 	void mult(const Matrix& second,Matrix& res);
 	void diagmult(const Matrix& second,Matrix& res);
+	void diagmaxmult(const Matrix& second,Matrix& res);
 	void maxmult(const Matrix& second,Matrix& res);
 	double scale();
 	Matrix &operator=(const Matrix &a){
