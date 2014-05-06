@@ -18,7 +18,7 @@ void Matrix::mult(const Matrix& second, Matrix& res){
 	for(size_t rindex=0;rindex<first.rsize;rindex++){
 		for(size_t cindex=0;cindex<second.csize;cindex++){
 			res(rindex,cindex) = first(rindex,0)*second(0,cindex);
-			for(size_t kindex=1;kindex<depth;kindex++){
+			for(size_t kindex=0;kindex<depth;kindex++){
 				res(rindex,cindex) += first(rindex,kindex)*second(kindex,cindex);
 			}
 		}
@@ -34,18 +34,41 @@ void Matrix::diagmult(const Matrix& second, Matrix& res){
 	}
 }
 
-
 void Matrix::maxmult(const Matrix& second, Matrix& res){
 	const size_t depth = second.rsize;
 	Matrix& first = *this;
 	for(size_t rindex=0;rindex<first.rsize;rindex++){
 		for(size_t cindex=0;cindex<second.csize;cindex++){
 			res(rindex,cindex) = first(rindex,0)*second(0,cindex);
-			for(size_t kindex=1;kindex<depth;kindex++){
+			for(size_t kindex=0;kindex<depth;kindex++){
 				res(rindex,cindex) = fmax(res(rindex,cindex),first(rindex,kindex)*second(kindex,cindex));
-			}
-			
+			}	
 		}
+	}
+}
+
+void Matrix::argmaxmult(const Matrix& second, Matrix& res,Matrix& argres){
+	const size_t depth = second.rsize;
+	Matrix& first = *this;
+	for(size_t rindex=0;rindex<first.rsize;rindex++){
+		for(size_t cindex=0;cindex<second.csize;cindex++){
+			res(rindex,cindex) = first(rindex,0)*second(0,cindex);
+			for(size_t kindex=0;kindex<depth;kindex++){
+				int temp = first(rindex,kindex)*second(kindex,cindex);
+				if(res(rindex,cindex)<temp){
+					res(rindex,cindex) = temp;
+					argres(rindex,cindex) = kindex;
+				}
+			}	
+		}
+	}
+}
+
+void Matrix:: assignVector(const Matrix&vector, int cindex){
+	const size_t rows = vector.rsize;
+	Matrix& first = *this;
+	for(int rindex=0;rindex<rows;rindex++){
+		first(rindex,cindex)=vector(rindex,0);
 	}
 }
 double Matrix::scale(){

@@ -16,6 +16,9 @@ public:
 		 pthread_mutex_init(&mutex_lock, 0);
 		 block_size = ceil(seq_len/nBlocks);
 	}
+	void reset(){
+		head=0;tail=numBlocks;
+	}
 	int remove(bool start){
 		size_t index=EMPTY;
 		pthread_mutex_lock(&mutex_lock);

@@ -14,6 +14,7 @@ public :
 	size_t &operator()(size_t idx){return sequence[idx];}
 	size_t operator()(size_t idx) const {return sequence[idx];}
 	void insert(size_t value);
+	void setState(size_t value,size_t index);
 	size_t length() const{return sequence.size();}
 };
 
