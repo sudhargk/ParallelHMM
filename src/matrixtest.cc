@@ -1,6 +1,8 @@
 #include "matrix.hh"
 #include <iostream>
+
 using namespace std;
+
 int main(){
 	Matrix m(2,2);
 	m(0,0)=1;

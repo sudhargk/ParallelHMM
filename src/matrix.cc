@@ -12,6 +12,18 @@ std::ostream &operator<<(std::ostream &out, const Matrix &mat){
 }
 
 
+int Matrix::argmaxInCol(int colIdx){
+    int max = matrix[0];
+    int argmax = 0;
+	for(size_t i = colIdx; i < rsize*csize; i+=csize) {
+        if (matrix[i] > max) {
+            max = matrix[i];
+            argmax = i;
+        }
+	}
+    return argmax;
+}
+
 void Matrix::mult(const Matrix& second, Matrix& res){
 	const size_t depth = second.rsize;
 	Matrix& first = *this;
