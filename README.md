@@ -1,12 +1,23 @@
-<<<<<<< HEAD
-Par-HMM
-=======
-
-Concurrent Programming project
-Aashima Bhatia, ArjunLal B, Parth Joshi, Sudharshan K
-=======
 ParallelHMM
 ===========
+A Concurrent framework for *Discrete Hidden Markov Model* using pthreads implementation.
 
-A C++ framework for HIdden Markov Model implementation.
->>>>>>> faf1d19c4c3c6497749fc7550e4fd14f2bae8b8a
+It constitutes of following modules,
+> * Vitterbi Implementation
+> * Evaluation 
+
+
+
+References
+==========
+- [Algorithms for a parallel implementation of Hidden Markov Models with a small
+state space][1]
+
+
+
+
+Developers
+-------------
+*Aashima Bhatia*, *ArjunLal B*, *Parth Joshi*, *Sudharshan K*
+
+[1]:http://www.hicomb.org/papers/HICOMB2011-06.pdf
