@@ -8,10 +8,9 @@ It constitutes of following modules,
 
 
 
-References
+Other Resources
 ==========
-- [Algorithms for a parallel implementation of Hidden Markov Models with a small
-state space][1]
+- [Project Report][1]
 
 
 
@@ -20,4 +19,4 @@ Developers
 -------------
 *Aashima Bhatia*, *ArjunLal B*, *Parth Joshi*, *Sudharshan K*
 
-[1]:http://www.hicomb.org/papers/HICOMB2011-06.pdf
+[1]:http://1drv.ms/1wghwir
